@@ -39,14 +39,16 @@ def start_conversation():
     if not topic:
         return jsonify({"error": "Topic is required"}), 400
 
-    # Initialize history with the system prompt (handled inside run_single_turn if needed)
-    # But for the web UI, we want to trigger the first turn.
+    # Initialize conversation_id if not exists
+    if "conversation_id" not in session:
+        session["conversation_id"] = str(uuid.uuid4())
 
     history = []
     # We use the session to store history
     session["history"] = history
     session["topic"] = topic
     session["depth_level"] = depth_level
+    session.modified = True
 
     # Save conversation to database
     save_conversation(session["conversation_id"], topic, depth_level)
@@ -64,10 +66,12 @@ def next_turn():
         return jsonify({"error": "No active conversation"}), 400
 
     try:
+        # Save old content count BEFORE calling run_single_turn (it modifies history in place)
+        old_content_count = len(history)
+
         new_history, resp_a, resp_b = run_single_turn(topic, depth_level, history)
 
         # Save new messages to database
-        old_content_count = len(history)
         for msg in new_history[old_content_count:]:
             save_message(
                 session["conversation_id"],
