@@ -65,19 +65,20 @@ def next_turn():
 
     try:
         new_history, resp_a, resp_b = run_single_turn(topic, depth_level, history)
-        session["history"] = new_history
-        session.modified = True
 
         # Save new messages to database
-        for msg in new_history:
-            if msg not in history:
-                save_message(
-                    session["conversation_id"],
-                    msg.get("role"),
-                    msg.get("content"),
-                    msg.get("sender"),
-                    msg.get("display", True),
-                )
+        old_content_count = len(history)
+        for msg in new_history[old_content_count:]:
+            save_message(
+                session["conversation_id"],
+                msg.get("role"),
+                msg.get("content"),
+                msg.get("sender"),
+                msg.get("display", True),
+            )
+
+        session["history"] = new_history
+        session.modified = True
 
         return jsonify(
             {"history": new_history, "response_a": resp_a, "response_b": resp_b}
@@ -100,19 +101,20 @@ def ask_question():
         new_history, resp_a, resp_b = run_user_question(
             user_question, depth_level, history
         )
-        session["history"] = new_history
-        session.modified = True
 
         # Save new messages to database
-        for msg in new_history:
-            if msg not in history:
-                save_message(
-                    session["conversation_id"],
-                    msg.get("role"),
-                    msg.get("content"),
-                    msg.get("sender"),
-                    msg.get("display", True),
-                )
+        old_content_count = len(history)
+        for msg in new_history[old_content_count:]:
+            save_message(
+                session["conversation_id"],
+                msg.get("role"),
+                msg.get("content"),
+                msg.get("sender"),
+                msg.get("display", True),
+            )
+
+        session["history"] = new_history
+        session.modified = True
 
         return jsonify(
             {"history": new_history, "response_a": resp_a, "response_b": resp_b}
