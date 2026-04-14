@@ -269,6 +269,9 @@
                 const response = await fetch(`/api/conversations/${conversationId}/messages`);
                 const messages = await response.json();
                 
+                // Show chat section if hidden
+                document.getElementById('chat-section').classList.remove('hidden');
+                
                 const chatWindow = document.getElementById('chat-window');
                 chatWindow.innerHTML = '';
                 
