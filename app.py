@@ -22,9 +22,11 @@ app.secret_key = "super_secret_key_for_session"  # In production, use a real sec
 
 @app.route("/")
 def index():
-    # Initialize a new session for a new conversation
-    session["conversation_id"] = str(uuid.uuid4())
-    session["history"] = []
+    # Only initialize conversation_id if not already exists
+    # This preserves the conversation when user returns from history view
+    if "conversation_id" not in session:
+        session["conversation_id"] = str(uuid.uuid4())
+        session["history"] = []
     return render_template(
         "index.html", depth_templates=DEPTH_TEMPLATES, db_enabled=True
     )
