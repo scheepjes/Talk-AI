@@ -17,9 +17,14 @@
 </head>
   <body class="bg-gray-100 font-sans min-h-screen">
     <div class="container mx-auto max-w-6xl p-2">
-        <header class="text-center mb-2">
-            <h1 class="text-2xl font-bold text-gray-800">Talk AI Conversation</h1>
-            <p class="text-gray-600 text-sm">Twee LLM's in gesprek</p>
+        <header class="flex justify-between items-center mb-2">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Talk AI Conversation</h1>
+                <p class="text-gray-600 text-sm">Twee LLM's in gesprek</p>
+            </div>
+            <button onclick="toggleSidebar()" class="bg-indigo-600 text-white px-3 py-2 rounded-lg hover:bg-indigo-700 transition text-sm">
+                📚 Geschiedenis
+            </button>
         </header>
 
         <!-- Setup Form -->
@@ -43,34 +48,24 @@
 
         <!-- Chat Display -->
         <div id="chat-section" class="hidden">
-            <div class="flex gap-2">
-                <!-- Main Chat Area -->
-                <div class="flex-1">
-                    <div id="chat-window" class="chat-container bg-white p-2 rounded-lg shadow-inner overflow-y-auto flex flex-col space-y-2 mb-2">
-                        <!-- Messages appear here -->
-                    </div>
-                    
-                    <div class="bg-white p-3 rounded-lg shadow-md mb-2">
-                        <!-- Loading Indicator -->
-                        <div id="loading-indicator" class="hidden flex items-center space-x-2 mb-2">
-                            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                            <span class="text-sm text-gray-600">Aan het denken...</span>
-                        </div>
-                        
-                        <label class="block text-xs font-medium text-gray-700 mb-1">Nieuwe vraag stellen (optioneel)</label>
-                        <textarea id="user-question" rows="2" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm" placeholder="Typ hier je vraag..."></textarea>
-                        <div class="flex space-x-2 mt-2">
-                            <button onclick="askQuestion()" id="ask-btn" class="flex-1 bg-purple-600 text-white py-1 px-3 rounded-md hover:bg-purple-700 transition text-sm">Vraag Stellen</button>
-                            <button onclick="nextTurn()" id="next-btn" class="flex-1 bg-green-600 text-white py-1 px-3 rounded-md hover:bg-green-700 transition text-sm">Volgende Ronde</button>
-                            <button onclick="location.reload()" class="bg-gray-500 text-white py-1 px-3 rounded-md hover:bg-gray-600 transition text-sm">Reset</button>
-                        </div>
-                    </div>
+            <div id="chat-window" class="chat-container bg-white p-2 rounded-lg shadow-inner overflow-y-auto flex flex-col space-y-2 mb-2">
+                <!-- Messages appear here -->
+            </div>
+            
+            <div class="bg-white p-3 rounded-lg shadow-md mb-2">
+                <!-- Loading Indicator -->
+                <div id="loading-indicator" class="hidden flex items-center space-x-2 mb-2">
+                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    <span class="text-sm text-gray-600">Aan het denken...</span>
                 </div>
                 
-                <!-- Sidebar Toggle Button -->
-                <button onclick="toggleSidebar()" class="bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 transition whitespace-nowrap">
-                    📚 Geschiedenis
-                </button>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Nieuwe vraag stellen (optioneel)</label>
+                <textarea id="user-question" rows="2" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm" placeholder="Typ hier je vraag..."></textarea>
+                <div class="flex space-x-2 mt-2">
+                    <button onclick="askQuestion()" id="ask-btn" class="flex-1 bg-purple-600 text-white py-1 px-3 rounded-md hover:bg-purple-700 transition text-sm">Vraag Stellen</button>
+                    <button onclick="nextTurn()" id="next-btn" class="flex-1 bg-green-600 text-white py-1 px-3 rounded-md hover:bg-green-700 transition text-sm">Volgende Ronde</button>
+                    <button onclick="location.reload()" class="bg-gray-500 text-white py-1 px-3 rounded-md hover:bg-gray-600 transition text-sm">Reset</button>
+                </div>
             </div>
         </div>
 
