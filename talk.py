@@ -56,22 +56,6 @@ def send_message(server_url, messages, max_tokens=16384, context_length=32000):
         return f"{Fore.RED}[FOUT]{Style.RESET_ALL} Fout: {str(e)}"
 
 
-def truncate_history(history, max_messages=30):
-    """
-    Houd de conversatiegeschiedenis beheersbaar om context-limits te respecteren.
-    Houd de laatste N messages (system + user/assistant pairs).
-    """
-    # Houd altijd de system prompt, dan de laatste messages
-    if len(history) <= max_messages:
-        return history
-
-    # Bewaar system prompt en laatste messages
-    system_msg = [h for h in history if h.get("role") == "system"]
-    recent_messages = history[-(max_messages - len(system_msg)) :]
-
-    return system_msg + recent_messages if system_msg else recent_messages
-
-
 def run_conversation():
     print(f"{Fore.GREEN}--- Nieuwe Conversatie Opstarten ---{Style.RESET_ALL}")
 
@@ -163,9 +147,6 @@ def run_conversation():
             history.append({"role": "assistant", "content": response_a})
             history.append({"role": "user", "content": user_msg_b})
             history.append({"role": "assistant", "content": response_b})
-
-            # Houd history beheersbaar (max 24 messages = ~6 rondes)
-            history = truncate_history(history, 24)
 
             # Pauze voor leesbaarheid
             time.sleep(1)
