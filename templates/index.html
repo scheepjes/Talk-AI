@@ -45,7 +45,7 @@
 
         <!-- Chat Display -->
         <div id="chat-section" class="hidden">
-            <div id="chat-window" class="chat-container bg-white p-2 rounded-lg shadow-inner overflow-y-auto flex flex-col space-y-2 mb-2">
+            <div id="chat-window" class="chat-container bg-white p-2 rounded-lg shadow-inner overflow-y-auto mb-2">
                 <!-- Messages appear here -->
             </div>
             
@@ -183,18 +183,18 @@
                 if (msg.display === false) return;
                 
                 const div = document.createElement('div');
-                div.className = 'max-w-[80%] p-3 rounded-lg shadow-sm';
                 
                 if (msg.role === 'system') {
                     div.className = 'w-full text-center text-xs text-gray-400 italic my-2';
                     div.innerText = "Systeem: " + msg.content;
                 } else if (msg.role === 'user') {
-                    div.className = 'max-w-[80%] p-2 rounded-lg shadow-sm bg-gray-200 self-center text-xs italic text-gray-700';
+                    div.className = 'max-w-[80%] ml-auto mr-0 p-2 rounded-lg shadow-sm bg-gray-200 text-xs italic text-gray-700 mb-2';
                     div.innerText = msg.content;
                 } else {
-                    // Assistant (Server A or B)
                     const isA = msg.sender === 'Server A';
-                    div.className = `max-w-[80%] p-2 rounded-lg shadow-sm ${isA ? 'bg-blue-100 self-start border-l-4 border-blue-500' : 'bg-green-100 self-end border-r-4 border-green-500'}`;
+                    const alignClass = isA ? 'mr-auto' : 'ml-auto';
+                    const bgClass = isA ? 'bg-blue-100 border-l-4 border-blue-500' : 'bg-green-100 border-r-4 border-green-500';
+                    div.className = `max-w-[80%] ${alignClass} p-2 rounded-lg shadow-sm ${bgClass} mb-2`;
                     let formattedContent = msg.content
                         .replace(/^###### (.+)$/gm, '<h6 class="text-xs font-semibold mt-1">$1</h6>')
                         .replace(/^##### (.+)$/gm, '<h5 class="text-sm font-semibold mt-2">$1</h5>')
@@ -283,17 +283,18 @@
                     }
                     
                     const div = document.createElement('div');
-                    div.className = 'max-w-[80%] p-3 rounded-lg shadow-sm';
                     
                     if (msg.role === 'system') {
                         div.className = 'w-full text-center text-xs text-gray-400 italic my-2';
                         div.innerText = "Systeem: " + msg.content;
                     } else if (msg.role === 'user') {
-                        div.className = 'max-w-[80%] p-2 rounded-lg shadow-sm bg-gray-200 self-center text-xs italic text-gray-700';
+                        div.className = 'max-w-[80%] ml-auto mr-0 p-2 rounded-lg shadow-sm bg-gray-200 text-xs italic text-gray-700 mb-2';
                         div.innerText = msg.content;
                     } else {
                         const isA = msg.sender === 'Server A';
-                        div.className = `max-w-[80%] p-2 rounded-lg shadow-sm ${isA ? 'bg-blue-100 self-start border-l-4 border-blue-500' : 'bg-green-100 self-end border-r-4 border-green-500'}`;
+                        const alignClass = isA ? 'mr-auto' : 'ml-auto';
+                        const bgClass = isA ? 'bg-blue-100 border-l-4 border-blue-500' : 'bg-green-100 border-r-4 border-green-500';
+                        div.className = `max-w-[80%] ${alignClass} p-2 rounded-lg shadow-sm ${bgClass} mb-2`;
                         let formattedContent = msg.content
                             .replace(/^###### (.+)$/gm, '<h6 class="text-xs font-semibold mt-1">$1</h6>')
                             .replace(/^##### (.+)$/gm, '<h5 class="text-sm font-semibold mt-2">$1</h5>')
@@ -308,7 +309,7 @@
                         div.innerHTML = `<strong>${msg.sender || 'Assistant'}:</strong> <div class="mt-1 text-sm"><p>${formattedContent}</p></div>`;
                     }
                     
-                    console.log('Appending message div');
+                    console.log('Appending message div with class:', div.className);
                     chatWindow.appendChild(div);
                 });
                 console.log('Messages appended, total children:', chatWindow.children.length);
