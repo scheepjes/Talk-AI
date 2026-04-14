@@ -148,6 +148,46 @@ def delete_conv(conversation_id):
     return jsonify({"status": "deleted", "conversation_id": conversation_id})
 
 
+@app.route("/api/conversations/<conversation_id>/load", methods=["POST"])
+def load_conversation(conversation_id):
+    """Load a conversation into the session."""
+    from database import get_conversation_messages, get_all_conversations
+
+    # Check if conversation exists
+    conversations = get_all_conversations()
+    conv = next((c for c in conversations if c["id"] == conversation_id), None)
+
+    if not conv:
+        return jsonify({"error": "Conversation not found"}), 404
+
+    # Get messages
+    messages = get_conversation_messages(conversation_id)
+
+    # Update session
+    session["conversation_id"] = conversation_id
+    session["topic"] = conv["topic"]
+    session["depth_level"] = conv["depth_level"]
+    session["history"] = [
+        {
+            "role": msg["role"],
+            "content": msg["content"],
+            "sender": msg["sender"],
+            "display": bool(msg["display"]),
+        }
+        for msg in messages
+    ]
+    session.modified = True
+
+    return jsonify(
+        {
+            "status": "loaded",
+            "topic": conv["topic"],
+            "depth_level": conv["depth_level"],
+            "history": session["history"],
+        }
+    )
+
+
 @app.route("/api/conversations", methods=["DELETE"])
 def delete_all_conv():
     """Delete all conversations."""
