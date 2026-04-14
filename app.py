@@ -6,6 +6,14 @@ from logic import (
     SERVER_A_URL,
     SERVER_B_URL,
 )
+from database import (
+    save_conversation,
+    save_message,
+    get_all_conversations,
+    get_conversation_messages,
+    delete_conversation,
+    delete_all_conversations,
+)
 import uuid
 
 app = Flask(__name__)
@@ -17,7 +25,9 @@ def index():
     # Initialize a new session for a new conversation
     session["conversation_id"] = str(uuid.uuid4())
     session["history"] = []
-    return render_template("index.html", depth_templates=DEPTH_TEMPLATES)
+    return render_template(
+        "index.html", depth_templates=DEPTH_TEMPLATES, db_enabled=True
+    )
 
 
 @app.route("/start", methods=["POST"])
@@ -38,6 +48,9 @@ def start_conversation():
     session["topic"] = topic
     session["depth_level"] = depth_level
 
+    # Save conversation to database
+    save_conversation(session["conversation_id"], topic, depth_level)
+
     return jsonify({"status": "started", "topic": topic})
 
 
@@ -54,6 +67,18 @@ def next_turn():
         new_history, resp_a, resp_b = run_single_turn(topic, depth_level, history)
         session["history"] = new_history
         session.modified = True
+
+        # Save new messages to database
+        for msg in new_history:
+            if msg not in history:
+                save_message(
+                    session["conversation_id"],
+                    msg.get("role"),
+                    msg.get("content"),
+                    msg.get("sender"),
+                    msg.get("display", True),
+                )
+
         return jsonify(
             {"history": new_history, "response_a": resp_a, "response_b": resp_b}
         )
@@ -77,11 +102,51 @@ def ask_question():
         )
         session["history"] = new_history
         session.modified = True
+
+        # Save new messages to database
+        for msg in new_history:
+            if msg not in history:
+                save_message(
+                    session["conversation_id"],
+                    msg.get("role"),
+                    msg.get("content"),
+                    msg.get("sender"),
+                    msg.get("display", True),
+                )
+
         return jsonify(
             {"history": new_history, "response_a": resp_a, "response_b": resp_b}
         )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/conversations", methods=["GET"])
+def get_conversations():
+    """Get all conversations."""
+    conversations = get_all_conversations()
+    return jsonify([dict(conv) for conv in conversations])
+
+
+@app.route("/api/conversations/<conversation_id>/messages", methods=["GET"])
+def get_messages(conversation_id):
+    """Get all messages for a specific conversation."""
+    messages = get_conversation_messages(conversation_id)
+    return jsonify([dict(msg) for msg in messages])
+
+
+@app.route("/api/conversations/<conversation_id>", methods=["DELETE"])
+def delete_conv(conversation_id):
+    """Delete a specific conversation."""
+    delete_conversation(conversation_id)
+    return jsonify({"status": "deleted", "conversation_id": conversation_id})
+
+
+@app.route("/api/conversations", methods=["DELETE"])
+def delete_all_conv():
+    """Delete all conversations."""
+    delete_all_conversations()
+    return jsonify({"status": "all_deleted"})
 
 
 if __name__ == "__main__":

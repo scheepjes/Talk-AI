@@ -5,11 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Talk AI Wrapper</title>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
-      <style>
+    <style>
         .chat-container { height: calc(100vh - 200px); }
         .message-a { background-color: #e0f2fe; align-self: flex-start; }
         .message-b { background-color: #f0fdf4; align-self: flex-end; }
         .message-user { background-color: #f3f4f6; align-self: center; font-style: italic; }
+        .sidebar { transition: transform 0.3s ease-in-out; }
+        .sidebar-open { transform: translateX(0); }
+        .sidebar-closed { transform: translateX(100%); }
     </style>
 </head>
   <body class="bg-gray-100 font-sans min-h-screen">
@@ -40,26 +43,59 @@
 
         <!-- Chat Display -->
         <div id="chat-section" class="hidden">
-            <div id="chat-window" class="chat-container bg-white p-2 rounded-lg shadow-inner overflow-y-auto flex flex-col space-y-2 mb-2">
-                <!-- Messages appear here -->
-            </div>
-            
-            <div class="bg-white p-3 rounded-lg shadow-md mb-2">
-                <!-- Loading Indicator -->
-                <div id="loading-indicator" class="hidden flex items-center space-x-2 mb-2">
-                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                    <span class="text-sm text-gray-600">Aan het denken...</span>
+            <div class="flex gap-2">
+                <!-- Main Chat Area -->
+                <div class="flex-1">
+                    <div id="chat-window" class="chat-container bg-white p-2 rounded-lg shadow-inner overflow-y-auto flex flex-col space-y-2 mb-2">
+                        <!-- Messages appear here -->
+                    </div>
+                    
+                    <div class="bg-white p-3 rounded-lg shadow-md mb-2">
+                        <!-- Loading Indicator -->
+                        <div id="loading-indicator" class="hidden flex items-center space-x-2 mb-2">
+                            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                            <span class="text-sm text-gray-600">Aan het denken...</span>
+                        </div>
+                        
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Nieuwe vraag stellen (optioneel)</label>
+                        <textarea id="user-question" rows="2" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm" placeholder="Typ hier je vraag..."></textarea>
+                        <div class="flex space-x-2 mt-2">
+                            <button onclick="askQuestion()" id="ask-btn" class="flex-1 bg-purple-600 text-white py-1 px-3 rounded-md hover:bg-purple-700 transition text-sm">Vraag Stellen</button>
+                            <button onclick="nextTurn()" id="next-btn" class="flex-1 bg-green-600 text-white py-1 px-3 rounded-md hover:bg-green-700 transition text-sm">Volgende Ronde</button>
+                            <button onclick="location.reload()" class="bg-gray-500 text-white py-1 px-3 rounded-md hover:bg-gray-600 transition text-sm">Reset</button>
+                        </div>
+                    </div>
                 </div>
                 
-                <label class="block text-xs font-medium text-gray-700 mb-1">Nieuwe vraag stellen (optioneel)</label>
-                <textarea id="user-question" rows="2" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm" placeholder="Typ hier je vraag..."></textarea>
-                <div class="flex space-x-2 mt-2">
-                    <button onclick="askQuestion()" id="ask-btn" class="flex-1 bg-purple-600 text-white py-1 px-3 rounded-md hover:bg-purple-700 transition text-sm">Vraag Stellen</button>
-                    <button onclick="nextTurn()" id="next-btn" class="flex-1 bg-green-600 text-white py-1 px-3 rounded-md hover:bg-green-700 transition text-sm">Volgende Ronde</button>
-                    <button onclick="location.reload()" class="bg-gray-500 text-white py-1 px-3 rounded-md hover:bg-gray-600 transition text-sm">Reset</button>
+                <!-- Sidebar Toggle Button -->
+                <button onclick="toggleSidebar()" class="bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 transition whitespace-nowrap">
+                    📚 Geschiedenis
+                </button>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div id="sidebar" class="sidebar sidebar-closed fixed right-0 top-0 h-full w-80 bg-white shadow-2xl z-50 overflow-y-auto">
+            <div class="p-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold text-gray-800">Conversatie Geschiedenis</h2>
+                    <button onclick="toggleSidebar()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                </div>
+                
+                <div id="history-list" class="space-y-2">
+                    <div class="text-center text-gray-500 py-4">Laden...</div>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <button onclick="deleteAllConversations()" class="w-full bg-red-600 text-white py-2 px-3 rounded-md hover:bg-red-700 transition text-sm">
+                        🗑️ Alles verwijderen
+                    </button>
                 </div>
             </div>
         </div>
+
+        <!-- Overlay -->
+        <div id="overlay" onclick="toggleSidebar()" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40"></div>
 
         </div>
 
@@ -188,5 +224,155 @@
         }
 
      </script>
+
+    <script>
+        // Sidebar functionality
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            
+            if (sidebar.classList.contains('sidebar-closed')) {
+                sidebar.classList.remove('sidebar-closed');
+                sidebar.classList.add('sidebar-open');
+                overlay.classList.remove('hidden');
+                loadConversations();
+            } else {
+                sidebar.classList.remove('sidebar-open');
+                sidebar.classList.add('sidebar-closed');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        async function loadConversations() {
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = '<div class="text-center text-gray-500 py-4">Laden...</div>';
+            
+            try {
+                const response = await fetch('/api/conversations');
+                const conversations = await response.json();
+                
+                if (conversations.length === 0) {
+                    historyList.innerHTML = '<div class="text-center text-gray-500 py-4">Geen conversaties gevonden</div>';
+                    return;
+                }
+                
+                historyList.innerHTML = '';
+                conversations.forEach(conv => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-gray-50 p-3 rounded-lg border border-gray-200';
+                    div.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-sm text-gray-800">${escapeHtml(conv.topic)}</h3>
+                                <p class="text-xs text-gray-500 mt-1">${new Date(conv.created_at).toLocaleString('nl-NL')}</p>
+                                <p class="text-xs text-gray-400 mt-1">Diepte niveau: ${conv.depth_level}</p>
+                            </div>
+                            <div class="flex space-x-1">
+                                <button onclick="viewConversation('${conv.id}')" class="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600">Bekijken</button>
+                                <button onclick="deleteConversation('${conv.id}')" class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600">Verwijder</button>
+                            </div>
+                        </div>
+                    `;
+                    historyList.appendChild(div);
+                });
+            } catch (error) {
+                historyList.innerHTML = '<div class="text-center text-red-500 py-4">Fout bij het laden van conversaties</div>';
+            }
+        }
+
+        async function viewConversation(conversationId) {
+            try {
+                const response = await fetch(`/api/conversations/${conversationId}/messages`);
+                const messages = await response.json();
+                
+                const chatWindow = document.getElementById('chat-window');
+                chatWindow.innerHTML = '';
+                
+                messages.forEach(msg => {
+                    if (msg.display === 0) return;
+                    
+                    const div = document.createElement('div');
+                    div.className = 'max-w-[80%] p-3 rounded-lg shadow-sm';
+                    
+                    if (msg.role === 'system') {
+                        div.className = 'w-full text-center text-xs text-gray-400 italic my-2';
+                        div.innerText = "Systeem: " + msg.content;
+                    } else if (msg.role === 'user') {
+                        div.className = 'max-w-[80%] p-2 rounded-lg shadow-sm bg-gray-200 self-center text-xs italic text-gray-700';
+                        div.innerText = msg.content;
+                    } else {
+                        const isA = msg.sender === 'Server A';
+                        div.className = `max-w-[80%] p-2 rounded-lg shadow-sm ${isA ? 'bg-blue-100 self-start border-l-4 border-blue-500' : 'bg-green-100 self-end border-r-4 border-green-500'}`;
+                        let formattedContent = msg.content
+                            .replace(/^###### (.+)$/gm, '<h6 class="text-xs font-semibold mt-1">$1</h6>')
+                            .replace(/^##### (.+)$/gm, '<h5 class="text-sm font-semibold mt-2">$1</h5>')
+                            .replace(/^#### (.+)$/gm, '<h4 class="text-base font-semibold mt-2">$1</h4>')
+                            .replace(/^### (.+)$/gm, '<h3 class="text-lg font-semibold mt-2">$1</h3>')
+                            .replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold mt-3">$1</h2>')
+                            .replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold mt-3 mb-1">$1</h1>')
+                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                            .replace(/\n\n/g, '</p><p class="mt-1">')
+                            .replace(/\n/g, '<br>');
+                        div.innerHTML = `<strong>${msg.sender || 'Assistant'}:</strong> <div class="mt-1 text-sm"><p>${formattedContent}</p></div>`;
+                    }
+                    
+                    chatWindow.appendChild(div);
+                });
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+                
+                // Close sidebar after viewing
+                toggleSidebar();
+            } catch (error) {
+                alert('Fout bij het laden van conversatie');
+            }
+        }
+
+        async function deleteConversation(conversationId) {
+            if (!confirm('Weet je zeker dat je deze conversatie wilt verwijderen?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/conversations/${conversationId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    loadConversations();
+                } else {
+                    alert('Fout bij het verwijderen van conversatie');
+                }
+            } catch (error) {
+                alert('Fout bij het verwijderen van conversatie');
+            }
+        }
+
+        async function deleteAllConversations() {
+            if (!confirm('Weet je zeker dat je ALLE conversaties wilt verwijderen? Dit kan niet ongedaan worden gemaakt.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/conversations', {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    loadConversations();
+                } else {
+                    alert('Fout bij het verwijderen van conversaties');
+                }
+            } catch (error) {
+                alert('Fout bij het verwijderen van conversaties');
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
 </body>
 </html>
