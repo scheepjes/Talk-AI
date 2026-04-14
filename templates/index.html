@@ -106,7 +106,8 @@
             const response = await fetch('/start', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ topic, depth_level })
+                body: JSON.stringify({ topic, depth_level }),
+                credentials: 'include'
             });
 
             if (response.ok) {
@@ -129,7 +130,8 @@
             document.getElementById('loading-indicator').classList.remove('hidden');
             const response = await fetch('/next_turn', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'}
+                headers: {'Content-Type': 'application/json'},
+                credentials: 'include'
             });
 
             if (response.ok) {
@@ -159,7 +161,8 @@
             const response = await fetch('/ask_question', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ question })
+                body: JSON.stringify({ question }),
+                credentials: 'include'
             });
 
             if (response.ok) {
@@ -232,7 +235,9 @@
             historyList.innerHTML = '<div class="text-center text-gray-500 py-4">Laden...</div>';
             
             try {
-                const response = await fetch('/api/conversations');
+                const response = await fetch('/api/conversations', {
+                    credentials: 'include'
+                });
                 const conversations = await response.json();
                 
                 if (conversations.length === 0) {
@@ -268,7 +273,8 @@
             try {
                 // Load conversation into session
                 const loadResponse = await fetch(`/api/conversations/${conversationId}/load`, {
-                    method: 'POST'
+                    method: 'POST',
+                    credentials: 'include'
                 });
                 
                 if (!loadResponse.ok) {
@@ -300,7 +306,8 @@
             
             try {
                 const response = await fetch(`/api/conversations/${conversationId}`, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    credentials: 'include'
                 });
                 
                 if (response.ok) {
@@ -320,7 +327,8 @@
             
             try {
                 const response = await fetch('/api/conversations', {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    credentials: 'include'
                 });
                 
                 if (response.ok) {
