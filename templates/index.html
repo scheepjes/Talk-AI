@@ -265,22 +265,15 @@
         }
 
         async function viewConversation(conversationId) {
-            console.log('viewConversation called with ID:', conversationId);
             try {
                 const response = await fetch(`/api/conversations/${conversationId}/messages`);
-                console.log('Response status:', response.status);
                 const messages = await response.json();
-                console.log('Messages received:', messages);
                 
                 const chatWindow = document.getElementById('chat-window');
                 chatWindow.innerHTML = '';
                 
                 messages.forEach(msg => {
-                    console.log('Processing message:', msg);
-                    if (msg.display === 0) {
-                        console.log('Skipping non-display message');
-                        return;
-                    }
+                    if (msg.display === 0) return;
                     
                     const div = document.createElement('div');
                     
@@ -309,16 +302,13 @@
                         div.innerHTML = `<strong>${msg.sender || 'Assistant'}:</strong> <div class="mt-1 text-sm"><p>${formattedContent}</p></div>`;
                     }
                     
-                    console.log('Appending message div with class:', div.className);
                     chatWindow.appendChild(div);
                 });
-                console.log('Messages appended, total children:', chatWindow.children.length);
                 chatWindow.scrollTop = chatWindow.scrollHeight;
                 
                 // Close modal after viewing
                 closeHistoryModal();
             } catch (error) {
-                console.error('Error in viewConversation:', error);
                 alert('Fout bij het laden van conversatie: ' + error.message);
             }
         }
