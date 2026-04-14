@@ -39,9 +39,8 @@ def start_conversation():
     if not topic:
         return jsonify({"error": "Topic is required"}), 400
 
-    # Initialize conversation_id if not exists
-    if "conversation_id" not in session:
-        session["conversation_id"] = str(uuid.uuid4())
+    # Always create a new conversation_id for a new conversation
+    session["conversation_id"] = str(uuid.uuid4())
 
     history = []
     # We use the session to store history
