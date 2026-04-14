@@ -98,9 +98,6 @@ def run_single_turn(topic, depth_level, history):
     history.append({"role": "user", "content": user_msg_b, "display": False})
     history.append({"role": "assistant", "content": response_b, "sender": "Server B"})
 
-    # Truncate
-    history = truncate_history(history, 24)
-
     return history, response_a, response_b
 
 
@@ -134,8 +131,5 @@ def run_user_question(user_question, depth_level, history):
     history.append({"role": "assistant", "content": response_a, "sender": "Server A"})
     history.append({"role": "user", "content": user_msg_b, "display": False})
     history.append({"role": "assistant", "content": response_b, "sender": "Server B"})
-
-    # Truncate
-    history = truncate_history(history, 24)
 
     return history, response_a, response_b
