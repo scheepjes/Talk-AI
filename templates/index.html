@@ -92,6 +92,8 @@
 
     <script>
         let conversationStarted = false;
+        let activeConversationId = null;
+        let loadedConversationData = null;
 
         async function startConversation() {
             const topic = document.getElementById('topic').value;
@@ -111,6 +113,10 @@
             });
 
             if (response.ok) {
+                const result = await response.json();
+                if (result.conversation_id) {
+                    activeConversationId = result.conversation_id;
+                }
                 document.getElementById('setup-section').classList.add('hidden');
                 document.getElementById('chat-section').classList.remove('hidden');
                 conversationStarted = true;
@@ -131,7 +137,8 @@
             const response = await fetch('/next_turn', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                credentials: 'include'
+                credentials: 'include',
+                body: JSON.stringify({ conversation_id: activeConversationId })
             });
 
             if (response.ok) {
@@ -161,7 +168,7 @@
             const response = await fetch('/ask_question', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ question }),
+                body: JSON.stringify({ question, conversation_id: activeConversationId }),
                 credentials: 'include'
             });
 
@@ -284,12 +291,14 @@
                 
                 const loadData = await loadResponse.json();
                 
-                // Update UI
+                // Store loaded data for next turn and show UI
+                activeConversationId = conversationId;
+                loadedConversationData = loadData;
                 document.getElementById('setup-section').classList.add('hidden');
                 document.getElementById('chat-section').classList.remove('hidden');
                 conversationStarted = true;
                 
-                // Render messages
+                // Render loaded messages immediately
                 renderHistory(loadData.history);
                 
                 // Close modal

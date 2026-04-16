@@ -54,11 +54,20 @@ def start_conversation():
     # Save conversation to database
     save_conversation(session["conversation_id"], topic, depth_level)
 
-    return jsonify({"status": "started", "topic": topic})
+    return jsonify(
+        {
+            "status": "started",
+            "topic": topic,
+            "conversation_id": session["conversation_id"],
+        }
+    )
 
 
 @app.route("/next_turn", methods=["POST"])
 def next_turn():
+    data = request.json or {}
+    conversation_id = data.get("conversation_id")
+
     history = session.get("history", [])
     topic = session.get("topic")
     depth_level = session.get("depth_level")
@@ -66,16 +75,40 @@ def next_turn():
     if not topic:
         return jsonify({"error": "No active conversation"}), 400
 
+    # Always use the conversation_id from the request; fall back to session
+    if not conversation_id:
+        conversation_id = session.get("conversation_id")
+
+    if conversation_id:
+        session["conversation_id"] = conversation_id
+        session.modified = True
+
     try:
-        # Save old content count BEFORE calling run_single_turn (it modifies history in place)
+        # Always read history from DB so we never use stale session data
+        db_messages = (
+            get_conversation_messages(conversation_id) if conversation_id else []
+        )
+        history = [
+            {
+                "role": msg["role"],
+                "content": msg["content"],
+                "sender": msg["sender"],
+                "display": bool(msg["display"]),
+            }
+            for msg in db_messages
+        ]
+        system_instruction = DEPTH_TEMPLATES.get(depth_level, DEPTH_TEMPLATES[2])
+        if not any(h.get("role") == "system" for h in history):
+            history.insert(0, {"role": "system", "content": system_instruction})
+
         old_content_count = len(history)
 
         new_history, resp_a, resp_b = run_single_turn(topic, depth_level, history)
 
-        # Save new messages to database
+        # Save only new messages to DB
         for msg in new_history[old_content_count:]:
             save_message(
-                session["conversation_id"],
+                conversation_id,
                 msg.get("role"),
                 msg.get("content"),
                 msg.get("sender"),
@@ -94,24 +127,50 @@ def next_turn():
 
 @app.route("/ask_question", methods=["POST"])
 def ask_question():
-    data = request.json
+    data = request.json or {}
     user_question = data.get("question")
+    conversation_id = data.get("conversation_id")
     history = session.get("history", [])
     depth_level = session.get("depth_level")
 
     if not user_question:
         return jsonify({"error": "Question is required"}), 400
 
+    if not conversation_id:
+        conversation_id = session.get("conversation_id")
+
+    if conversation_id:
+        session["conversation_id"] = conversation_id
+        session.modified = True
+
     try:
+        # Always read history from DB so we never use stale session data
+        db_messages = (
+            get_conversation_messages(conversation_id) if conversation_id else []
+        )
+        history = [
+            {
+                "role": msg["role"],
+                "content": msg["content"],
+                "sender": msg["sender"],
+                "display": bool(msg["display"]),
+            }
+            for msg in db_messages
+        ]
+        system_instruction = DEPTH_TEMPLATES.get(depth_level, DEPTH_TEMPLATES[2])
+        if not any(h.get("role") == "system" for h in history):
+            history.insert(0, {"role": "system", "content": system_instruction})
+
+        old_content_count = len(history)
+
         new_history, resp_a, resp_b = run_user_question(
             user_question, depth_level, history
         )
 
-        # Save new messages to database
-        old_content_count = len(history)
+        # Save only new messages to DB
         for msg in new_history[old_content_count:]:
             save_message(
-                session["conversation_id"],
+                conversation_id,
                 msg.get("role"),
                 msg.get("content"),
                 msg.get("sender"),
@@ -168,7 +227,7 @@ def load_conversation(conversation_id):
     session["conversation_id"] = conversation_id
     session["topic"] = conv["topic"]
     session["depth_level"] = conv["depth_level"]
-    session["history"] = [
+    loaded_history = [
         {
             "role": msg["role"],
             "content": msg["content"],
@@ -177,6 +236,12 @@ def load_conversation(conversation_id):
         }
         for msg in messages
     ]
+
+    system_prompt = DEPTH_TEMPLATES.get(int(conv["depth_level"]), DEPTH_TEMPLATES[2])
+    if not any(h.get("role") == "system" for h in loaded_history):
+        loaded_history.insert(0, {"role": "system", "content": system_prompt})
+
+    session["history"] = loaded_history
     session.modified = True
 
     return jsonify(

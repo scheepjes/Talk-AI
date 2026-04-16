@@ -2,8 +2,8 @@ import requests
 import time
 
 # --- CONFIGURATION ---
-SERVER_A_URL = "http://10.0.0.10:9001/v1/chat/completions"
-SERVER_B_URL = "http://10.0.0.10:9001/v1/chat/completions"
+SERVER_A_URL = "http://10.0.0.10:9000/v1/chat/completions"
+SERVER_B_URL = "http://10.0.0.10:9000/v1/chat/completions"
 
 DEPTH_TEMPLATES = {
     1: "Kort en bondig. Geef alleen feitelijke antwoorden zonder uitwijdingen.",
@@ -68,7 +68,7 @@ def run_single_turn(topic, depth_level, history):
         history.insert(0, {"role": "system", "content": system_instruction})
 
     # Check of dit de eerste ronde is
-    is_first_turn = len(history) <= 1
+    is_first_turn = len([h for h in history if h.get("role") != "system"]) <= 0
 
     # --- Server A Sprekt ---
     if is_first_turn:
