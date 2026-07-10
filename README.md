@@ -4,6 +4,12 @@ Two LLMs conversing with each other. Choose a topic, select a depth level and la
 
 > **Note:** Server A and Server B can be the same server running the same model, or two different servers running different models. The UI lets you pick any available model for each role independently.
 
+## Screenshots
+
+![Talk AI Screenshot 1](images/talker1.png)
+
+![Talk AI Screenshot 2](images/talker2.png)
+
 ## Architecture
 
 ```
