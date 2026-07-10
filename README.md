@@ -228,6 +228,10 @@ Tests basic and multi-conversation database operations.
 
 **Model names not showing** — Ensure llama.cpp servers expose the `/v1/models` endpoint. If unreachable, the full URL is displayed as fallback.
 
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
 ## Contact
 
 MainBrain.nl  
