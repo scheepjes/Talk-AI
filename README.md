@@ -221,3 +221,9 @@ Tests basic and multi-conversation database operations.
 **Language not persisting** — The language is saved per conversation in the database. When loading from history, the original language is restored automatically.
 
 **Model names not showing** — Ensure llama.cpp servers expose the `/v1/models` endpoint. If unreachable, the full URL is displayed as fallback.
+
+## Contact
+
+MainBrain.nl  
+Paul Scheepmaker  
+paul@mainbrain.nl
