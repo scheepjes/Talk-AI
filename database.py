@@ -25,6 +25,8 @@ def init_db():
                 id TEXT PRIMARY KEY,
                 topic TEXT NOT NULL,
                 depth_level INTEGER NOT NULL,
+                server_a_url TEXT,
+                server_b_url TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
@@ -40,19 +42,28 @@ def init_db():
                 FOREIGN KEY (conversation_id) REFERENCES conversations (id)
             )
         """)
+        # Migration: add columns if they don't exist
+        cursor.execute("PRAGMA table_info(conversations)")
+        columns = [row["name"] for row in cursor.fetchall()]
+        if "server_a_url" not in columns:
+            cursor.execute("ALTER TABLE conversations ADD COLUMN server_a_url TEXT")
+        if "server_b_url" not in columns:
+            cursor.execute("ALTER TABLE conversations ADD COLUMN server_b_url TEXT")
+        if "language" not in columns:
+            cursor.execute("ALTER TABLE conversations ADD COLUMN language TEXT DEFAULT 'en'")
         conn.commit()
 
 
-def save_conversation(conversation_id, topic, depth_level):
+def save_conversation(conversation_id, topic, depth_level, server_a_url=None, server_b_url=None, language="en"):
     """Save a new conversation."""
     with get_db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
             """
-            INSERT OR REPLACE INTO conversations (id, topic, depth_level)
-            VALUES (?, ?, ?)
+            INSERT OR REPLACE INTO conversations (id, topic, depth_level, server_a_url, server_b_url, language)
+            VALUES (?, ?, ?, ?, ?, ?)
         """,
-            (conversation_id, topic, depth_level),
+            (conversation_id, topic, depth_level, server_a_url, server_b_url, language),
         )
         conn.commit()
 
@@ -77,7 +88,7 @@ def get_all_conversations():
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT id, topic, depth_level, created_at
+            SELECT id, topic, depth_level, server_a_url, server_b_url, language, created_at
             FROM conversations
             ORDER BY created_at DESC
         """

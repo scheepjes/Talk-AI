@@ -38,3 +38,23 @@ instance/
 # OS
 .DS_Store
 Thumbs.db
+
+# Virtual Environment (in project root)
+bin/
+include/
+lib/
+lib64/
+
+# Database & logs
+conversations.db
+server.log
+
+# Tool cache
+.ruff_cache/
+.opencode/
+
+# AI config
+AGENTS.md
+
+# Tests
+test_history.py

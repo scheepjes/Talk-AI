@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "/home/paul/Talk/app.py", line 2, in <module>
-    from logic import run_single_turn, DEPTH_TEMP_LATES, SERVER_A_URL, SERVER_B_URL
-ImportError: cannot import name 'DEPTH_TEMP_LATES' from 'logic' (/home/paul/Talk/logic.py). Did you mean: 'DEPTH_TEMPLATES'?
