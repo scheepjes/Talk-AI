@@ -206,14 +206,6 @@ Conversations are persisted in **`conversations.db`** (SQLite, located in the pr
 | `get_prompt(key, language)` | `logic.py:66` | Gets conversation prompt template |
 | `query_model_name(server_url)` | `logic.py:15` | Queries server for loaded model name |
 
-## Testing
-
-```bash
-python test_history.py
-```
-
-Tests basic and multi-conversation database operations.
-
 ## Troubleshooting
 
 **Server not reachable** — Verify llama.cpp servers are running and URLs in `logic.py` are correct.
