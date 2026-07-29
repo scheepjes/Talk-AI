@@ -35,7 +35,7 @@ def index():
     if "conversation_id" not in session:
         session["conversation_id"] = str(uuid.uuid4())
     if "language" not in session:
-        session["language"] = "en"
+        session["language"] = "nl"
     server_models = {url: query_model_name(url) for url in AVAILABLE_SERVERS}
     return render_template(
         "index.html",
@@ -54,7 +54,7 @@ def start_conversation():
     data = request.json
     topic = data.get("topic")
     depth_level = int(data.get("depth_level", 2))
-    language = data.get("language", session.get("language", "en"))
+    language = data.get("language", session.get("language", "nl"))
     server_a_url = data.get("server_a_url", SERVER_A_URL)
     server_b_url = data.get("server_b_url", SERVER_B_URL)
 
@@ -87,7 +87,7 @@ def next_turn():
 
     topic = session.get("topic")
     depth_level = session.get("depth_level")
-    language = data.get("language") or session.get("language", "en")
+    language = data.get("language") or session.get("language", "nl")
     server_a_url = data.get("server_a_url") or session.get("server_a_url", SERVER_A_URL)
     server_b_url = data.get("server_b_url") or session.get("server_b_url", SERVER_B_URL)
 
@@ -159,7 +159,7 @@ def ask_question():
     user_question = data.get("question")
     conversation_id = data.get("conversation_id")
     depth_level = session.get("depth_level")
-    language = data.get("language") or session.get("language", "en")
+    language = data.get("language") or session.get("language", "nl")
     server_a_url = data.get("server_a_url") or session.get("server_a_url", SERVER_A_URL)
     server_b_url = data.get("server_b_url") or session.get("server_b_url", SERVER_B_URL)
 
@@ -223,9 +223,9 @@ def ask_question():
 def set_language():
     """Set the UI language preference."""
     data = request.json or {}
-    language = data.get("language", "en")
+    language = data.get("language", "nl")
     if language not in ("en", "nl"):
-        language = "en"
+        language = "nl"
     session["language"] = language
     session.modified = True
     return jsonify({"status": "ok", "language": language})
@@ -273,7 +273,7 @@ def load_conversation(conversation_id):
     session["depth_level"] = conv["depth_level"]
     session["server_a_url"] = conv.get("server_a_url") or SERVER_A_URL
     session["server_b_url"] = conv.get("server_b_url") or SERVER_B_URL
-    session["language"] = conv.get("language") or "en"
+    session["language"] = conv.get("language") or "nl"
     session.modified = True
 
     # Build history for response (not stored in session to avoid cookie size limits)

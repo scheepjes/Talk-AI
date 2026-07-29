@@ -54,7 +54,7 @@ def init_db():
         conn.commit()
 
 
-def save_conversation(conversation_id, topic, depth_level, server_a_url=None, server_b_url=None, language="en"):
+def save_conversation(conversation_id, topic, depth_level, server_a_url=None, server_b_url=None, language="nl"):
     """Save a new conversation."""
     with get_db_connection() as conn:
         cursor = conn.cursor()

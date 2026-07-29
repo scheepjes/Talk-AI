@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,10 +22,10 @@
             <div class="flex items-center space-x-2">
                 <select id="language-select" onchange="setUILanguage(this.value)" class="border border-gray-300 rounded-md shadow-sm p-2 text-sm">
                     <option value="en">English</option>
-                    <option value="nl">Nederlands</option>
+                    <option value="nl" selected>Nederlands</option>
                 </select>
                 <button onclick="openHistoryModal()" class="bg-indigo-600 text-white px-3 py-2 rounded-lg hover:bg-indigo-700 transition text-sm">
-                    📚 <span data-i18n="history">History</span>
+                    <span class="hidden sm:inline">📚</span> <span data-i18n="history">History</span>
                 </button>
             </div>
         </header>
@@ -94,7 +94,7 @@
                         <option value="8">8</option>
                         <option value="9">9</option>
                     </select>
-                    <button onclick="location.reload()" class="bg-gray-500 text-white py-1 px-3 rounded-md hover:bg-gray-600 transition text-sm" data-i18n="new">New</button>
+                      <button onclick="location.reload()" class="bg-gray-500 text-white py-1 px-3 rounded-md hover:bg-gray-600 transition text-sm" data-i18n="new">New</button>
                 </div>
             </div>
         </div>
@@ -157,6 +157,9 @@
                 error_loading_conv: "Error loading conversation",
                 error_deleting_conv: "Error deleting conversation",
                 error_deleting_convs: "Error deleting conversations",
+                read_aloud: "Read aloud",
+                stop_speaking: "Stop",
+                speaking: "Speaking...",
                 depth: {
                     1: "Brief and concise. Give only factual answers without elaboration.",
                     2: "Normal conversation. Keep the conversation lively and polite.",
@@ -195,6 +198,9 @@
                 error_loading_conv: "Fout bij het laden van conversatie",
                 error_deleting_conv: "Fout bij het verwijderen van conversatie",
                 error_deleting_convs: "Fout bij het verwijderen van conversaties",
+                read_aloud: "Voorlezen",
+                stop_speaking: "Stoppen",
+                speaking: "Aan het voorlezen...",
                 depth: {
                     1: "Kort en bondig. Geef alleen feitelijke antwoorden zonder uitwijdingen.",
                     2: "Normale conversatie. Houd het gesprek levendig en beleefd.",
@@ -401,6 +407,73 @@
             span.textContent = t('thinking');
         }
 
+        // --- Speech synthesis ---
+        function stripHtmlTags(html) {
+            const tmp = document.createElement('div');
+            tmp.innerHTML = html;
+            return tmp.textContent || tmp.innerText || '';
+        }
+
+        function stopAllSpeaking() {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+            document.querySelectorAll('.read-aloud-btn').forEach(btn => {
+                btn.innerHTML = '🔊 ' + t('read_aloud');
+                btn.disabled = false;
+            });
+        }
+
+        function speakText(text, lang, btn) {
+            if (!('speechSynthesis' in window)) {
+                alert('Speech synthesis is not supported in this browser.');
+                return;
+            }
+
+            const speech = window.speechSynthesis;
+
+            if (speech.speaking) {
+                speech.cancel();
+                if (btn) {
+                    btn.innerHTML = '🔊 ' + t('read_aloud');
+                    btn.disabled = false;
+                }
+                return;
+            }
+
+            const plainText = stripHtmlTags(text);
+            const utterance = new SpeechSynthesisUtterance(plainText);
+            utterance.lang = lang === 'nl' ? 'nl-NL' : 'en-US';
+            utterance.rate = 1;
+            utterance.pitch = 1;
+
+            document.querySelectorAll('.read-aloud-btn').forEach(b => {
+                if (b !== btn) {
+                    b.innerHTML = '🔊 ' + t('read_aloud');
+                }
+            });
+            if (btn) {
+                btn.innerHTML = '🔇 ' + t('speaking');
+                btn.disabled = false;
+            }
+
+            utterance.onend = () => {
+                if (btn) {
+                    btn.innerHTML = '🔊 ' + t('read_aloud');
+                    btn.disabled = false;
+                }
+            };
+
+            utterance.onerror = () => {
+                if (btn) {
+                    btn.innerHTML = '🔊 ' + t('read_aloud');
+                    btn.disabled = false;
+                }
+            };
+
+            speech.speak(utterance);
+        }
+
         function renderHistory(history) {
             const chatWindow = document.getElementById('chat-window');
             chatWindow.innerHTML = '';
@@ -432,7 +505,16 @@
                         .replace(/\*(.*?)\*/g, '<em>$1</em>')
                         .replace(/\n\n/g, '</p><p class="mt-1">')
                         .replace(/\n/g, '<br>');
-                    div.innerHTML = `<strong>${msg.sender}:</strong> <div class="mt-1 text-sm"><p>${formattedContent}</p></div>`;
+                    div.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <strong>${msg.sender}:</strong>
+                            <button class="ml-2 text-xs bg-white bg-opacity-60 hover:bg-opacity-100 rounded px-2 py-1 transition read-aloud-btn" title="${t('read_aloud')}">🔊 ${t('read_aloud')}</button>
+                        </div>
+                        <div class="mt-1 text-sm"><p>${formattedContent}</p></div>
+                    `;
+                    div.querySelector('.read-aloud-btn').addEventListener('click', function() {
+                        speakText(`<p>${formattedContent}</p>`, currentLanguage, this);
+                    });
                 }
                 
                 chatWindow.appendChild(div);

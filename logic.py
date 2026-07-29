@@ -57,16 +57,16 @@ PROMPT_TEMPLATES = {
 }
 
 
-def get_depth_template(depth_level, language="en"):
+def get_depth_template(depth_level, language="nl"):
     """Get depth template for a given level and language."""
-    lang_templates = DEPTH_TEMPLATES.get(language, DEPTH_TEMPLATES["en"])
+    lang_templates = DEPTH_TEMPLATES.get(language, DEPTH_TEMPLATES["nl"])
     return lang_templates.get(depth_level, lang_templates[2])
 
 
-def get_prompt(key, language="en"):
+def get_prompt(key, language="nl"):
     """Get prompt template for a given key and language."""
-    lang_prompts = PROMPT_TEMPLATES.get(language, PROMPT_TEMPLATES["en"])
-    return lang_prompts.get(key, PROMPT_TEMPLATES["en"][key])
+    lang_prompts = PROMPT_TEMPLATES.get(language, PROMPT_TEMPLATES["nl"])
+    return lang_prompts.get(key, PROMPT_TEMPLATES["nl"][key])
 
 
 def send_message(server_url, messages, max_tokens=16384, context_length=32000):
@@ -113,7 +113,7 @@ def truncate_history(history, max_messages=30):
     return system_msg + recent_messages if system_msg else recent_messages
 
 
-def run_single_turn(topic, depth_level, history, server_a_url, server_b_url, language="en"):
+def run_single_turn(topic, depth_level, history, server_a_url, server_b_url, language="nl"):
     """
     Execute one turn of the conversation.
     """
@@ -150,7 +150,7 @@ def run_single_turn(topic, depth_level, history, server_a_url, server_b_url, lan
     return history, response_a, response_b
 
 
-def run_user_question(user_question, depth_level, history, server_a_url, server_b_url, language="en"):
+def run_user_question(user_question, depth_level, history, server_a_url, server_b_url, language="nl"):
     """
     Execute a turn based on a user question.
     """
