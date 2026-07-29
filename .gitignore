@@ -10,5 +10,5 @@ build/
 venv/
 .opencode/
 lib/
-lib64/
 bin/
+lib64
