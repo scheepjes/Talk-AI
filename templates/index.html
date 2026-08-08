@@ -332,15 +332,14 @@
                         })
                     });
 
-                    if (response.ok) {
-                        const data = await response.json();
-                        renderHistory(data.history);
-                    } else {
+                    if (!response.ok) {
                         const err = await response.json();
                         alert("Error: " + err.error);
                         success = false;
                         break;
                     }
+                    const data = await response.json();
+                    renderHistory(data.history);
                 } catch (e) {
                     alert(t("network_error") + e.message);
                     success = false;
