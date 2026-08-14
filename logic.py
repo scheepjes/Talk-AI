@@ -1,3 +1,4 @@
+import os
 import requests
 import time
 
@@ -83,7 +84,8 @@ def send_message(server_url, messages, max_tokens=16384, context_length=32000):
             "context_length": context_length,
         }
 
-        response = requests.post(server_url, json=payload, timeout=120)
+        timeout = int(os.environ.get("LLM_TIMEOUT", "300"))
+        response = requests.post(server_url, json=payload, timeout=timeout)
         response.raise_for_status()
         data = response.json()
 
